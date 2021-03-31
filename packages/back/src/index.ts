@@ -1,15 +1,20 @@
 import path from "path";
 import express from "express";
 import { shortLinksRouter } from "./api";
+import { createSchema } from "./database";
 
-const buildPath = path.join(__dirname, "..", "..", "front", "build");
-const app = express();
+(async () => {
+  await createSchema();
 
-app.use(express.json());
-app.use(express.static(buildPath));
+  const buildPath = path.join(__dirname, "..", "..", "front", "build");
+  const app = express();
 
-app.use("/api", shortLinksRouter);
+  app.use(express.json());
+  app.use(express.static(buildPath));
 
-app.use((req, res) => res.send(path.join(buildPath, "index.html")));
+  app.use("/api", shortLinksRouter);
 
-app.listen(process.env.PORT || 3001);
+  app.use((req, res) => res.send(path.join(buildPath, "index.html")));
+
+  app.listen(process.env.PORT || 3001);
+})();

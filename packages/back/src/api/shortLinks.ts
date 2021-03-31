@@ -12,7 +12,13 @@ import {
   GetShortLinkParameters,
   GetShortLinkResponse,
 } from "@shrtlnk/types";
-import { database, generateID } from "../database";
+import {
+  ShortLinkModel,
+  generateID,
+  ShortLinkVisitIPModel,
+  ShortLinkVisitorModel,
+  ShortLinkVisitModel,
+} from "../database";
 import { authorization } from "../authorization";
 
 const ipdata = new IPData(process.env.IPDATA_API_KEY!);
@@ -21,29 +27,11 @@ export const shortLinksRouter = express.Router();
 shortLinksRouter.get<GetShortLinksParameters, GetShortLinksResponse>(
   "/shortLinks",
   authorization,
-  (req, res) => {
-    res.json(
-      database.shortLinks.map((shortLink) => ({
-        ...shortLink,
-        visits: shortLink.visits.map((visitID) => {
-          const visit = database.shortLinksVisits.find(
-            (visit) => visit.id === visitID
-          )!;
-          const ip = database.shortLinksVisitsIPs.find(
-            (visitIP) => visitIP.ip === visit.ip
-          )!;
-          const visitor = database.shortLinksVisitors.find(
-            (visitor) => visitor.fingerprint === visit.visitor
-          )!;
-
-          return {
-            ...visit,
-            ip,
-            visitor,
-          };
-        }),
-      }))
-    );
+  async (req, res) => {
+    const shortLinks = ((await ShortLinkModel.query().withGraphFetched(
+      "visits.[ip, visitor]"
+    )) as unknown) as GetShortLinksResponse;
+    res.json(shortLinks);
   }
 );
 
@@ -51,19 +39,17 @@ shortLinksRouter.post<
   PostShortLinksParameters,
   PostShortLinksResponse,
   PostShortLinksBody
->("/shortLinks", authorization, (req, res) => {
+>("/shortLinks", authorization, async (req, res) => {
   // FIXME: validate input
   const { url } = req.body;
-  const shortLink = {
+
+  const shortLink = await ShortLinkModel.query().insertAndFetch({
     id: generateID(),
     url,
-    visits: [],
     createdAt: new Date().toISOString(),
-  };
+  });
 
-  database.shortLinks.push(shortLink);
-
-  res.json(shortLink);
+  res.json(shortLink as any);
 });
 
 shortLinksRouter.post<
@@ -73,18 +59,14 @@ shortLinksRouter.post<
 >("/shortLinks/:id/visits", async (req, res) => {
   // FIXME: validate input
   const { fingerprint, browser, engine, os, timeZone } = req.body;
-  const shortLink = database.shortLinks.find(
-    (shortLink) => shortLink.id === req.params.id
-  );
 
+  const shortLink = await ShortLinkModel.query().findById(req.params.id);
   if (shortLink == null) {
     return res.status(404).end();
   }
 
-  if (
-    database.shortLinksVisitsIPs.find((visitIP) => visitIP.ip === req.ip) ==
-    null
-  ) {
+  const visitIP = await ShortLinkVisitIPModel.query().findById(req.ip);
+  if (visitIP == null) {
     const {
       city,
       region,
@@ -103,7 +85,7 @@ shortLinksRouter.post<
         }
       : await ipdata.lookup();
 
-    database.shortLinksVisitsIPs.push({
+    await ShortLinkVisitIPModel.query().insert({
       ip: req.ip,
       city: city ?? null,
       region: region ?? null,
@@ -115,67 +97,43 @@ shortLinksRouter.post<
     });
   }
 
-  if (
-    database.shortLinksVisitors.find(
-      (visitor) => visitor.fingerprint === fingerprint
-    ) == null
-  ) {
-    database.shortLinksVisitors.push({
+  const visitor = await ShortLinkVisitorModel.query().findById(fingerprint);
+  if (visitor == null) {
+    await ShortLinkVisitorModel.query().insert({
       fingerprint,
       createdAt: new Date().toISOString(),
     });
   }
 
-  const shortLinkVisit = {
-    id: database.shortLinksVisits.length + 1,
+  await ShortLinkVisitModel.query().insert({
     browser,
     engine,
     os,
     timeZone,
     createdAt: new Date().toISOString(),
-    ip: req.ip,
-    visitor: fingerprint,
-  };
-  database.shortLinksVisits.push(shortLinkVisit);
+    shortLinkId: shortLink.id,
+    ipAddress: req.ip,
+    visitorFingerprint: fingerprint,
+  });
 
-  shortLink.visits.push(shortLinkVisit.id);
-
-  const { visits, ...rest } = shortLink;
-  res.json(rest);
+  res.json(shortLink);
 });
 
 shortLinksRouter.get<GetShortLinkParameters, GetShortLinkResponse>(
   "/shortLinks/:id",
   authorization,
-  (req, res) => {
-    const shortLink = database.shortLinks.find(
-      (shortLink) => shortLink.id === req.params.id
-    );
+  async (req, res) => {
+    const shortLink = ((await ShortLinkModel.query()
+      .findById(req.params.id)
+      .withGraphFetched(
+        "visits.[ip, visitor]"
+      )) as unknown) as GetShortLinkResponse;
 
     if (shortLink == null) {
       res.status(404).end();
       return;
     }
 
-    res.json({
-      ...shortLink,
-      visits: shortLink.visits.map((visitID) => {
-        const visit = database.shortLinksVisits.find(
-          (visit) => visit.id === visitID
-        )!;
-        const ip = database.shortLinksVisitsIPs.find(
-          (visitIP) => visitIP.ip === visit.ip
-        )!;
-        const visitor = database.shortLinksVisitors.find(
-          (visitor) => visitor.fingerprint === visit.visitor
-        )!;
-
-        return {
-          ...visit,
-          ip,
-          visitor,
-        };
-      }),
-    });
+    res.json(shortLink);
   }
 );

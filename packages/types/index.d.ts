@@ -10,10 +10,10 @@ export interface ShortLinkWithChildren extends ShortLink {
 
 export interface ShortLinkVisit {
   id: number;
-  browser: string;
-  engine: string;
-  os: string;
-  timeZone: string;
+  browser: string | null;
+  engine: string | null;
+  os: string | null;
+  timeZone: string | null;
   createdAt: string;
 }
 
