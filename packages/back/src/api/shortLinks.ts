@@ -60,13 +60,16 @@ shortLinksRouter.post<
   // FIXME: validate input
   const { fingerprint, browser, engine, os, timeZone } = req.body;
 
+  const forwardedFor = req.headers["x-forwarded-for"];
+  const ip =
+    (Array.isArray(forwardedFor) ? forwardedFor[0] : forwardedFor) || req.ip;
+
   const shortLink = await ShortLinkModel.query().findById(req.params.id);
   if (shortLink == null) {
     return res.status(404).end();
   }
 
-  console.log(req.ips);
-  const visitIP = await ShortLinkVisitIPModel.query().findById(req.ip);
+  const visitIP = await ShortLinkVisitIPModel.query().findById(ip);
   if (visitIP == null) {
     const {
       city,
@@ -75,7 +78,7 @@ shortLinksRouter.post<
       continent_name: continentName,
       postal,
       asn,
-    } = req.ip.includes("127.0.0.1")
+    } = ip.includes("127.0.0.1")
       ? {
           city: null,
           region: null,
@@ -87,7 +90,7 @@ shortLinksRouter.post<
       : await ipdata.lookup();
 
     await ShortLinkVisitIPModel.query().insert({
-      ip: req.ip,
+      ip,
       city: city ?? null,
       region: region ?? null,
       countryName: countryName ?? null,
@@ -113,7 +116,7 @@ shortLinksRouter.post<
     timeZone,
     createdAt: new Date().toISOString(),
     shortLinkId: shortLink.id,
-    ipAddress: req.ip,
+    ipAddress: ip,
     visitorFingerprint: fingerprint,
   });
 
