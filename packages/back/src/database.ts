@@ -16,9 +16,9 @@ const pg = Knex({
 Model.knex(pg);
 
 export class ShortLinkModel extends Model implements ShortLink {
-  id = "";
-  url = "";
-  createdAt = new Date().toISOString();
+  id!: string;
+  url!: string;
+  createdAt!: string;
 
   static get tableName() {
     return "shortLinks";
@@ -43,15 +43,15 @@ export class ShortLinkModel extends Model implements ShortLink {
 }
 
 export class ShortLinkVisitModel extends Model implements ShortLinkVisit {
-  id = 0;
-  browser = null;
-  engine = null;
-  os = null;
-  timeZone = null;
-  createdAt = new Date().toISOString();
-  shortLinkId: string = "";
-  ipAddress: string = "";
-  visitorFingerprint: number = 0;
+  id!: number;
+  browser!: string | null;
+  engine!: string | null;
+  os!: string | null;
+  timeZone!: string | null;
+  createdAt!: string;
+  shortLinkId!: string;
+  ipAddress!: string;
+  visitorFingerprint!: number;
 
   static get tableName() {
     return "visits";
@@ -92,14 +92,14 @@ export class ShortLinkVisitModel extends Model implements ShortLinkVisit {
 }
 
 export class ShortLinkVisitIPModel extends Model implements ShortLinkVisitIP {
-  ip = "";
-  city = null;
-  region = null;
-  countryName = null;
-  continentName = null;
-  postal = null;
-  asnName = null;
-  createdAt = new Date().toISOString();
+  ip!: string;
+  city!: string | null;
+  region!: string | null;
+  countryName!: string | null;
+  continentName!: string | null;
+  postal!: string | null;
+  asnName!: string | null;
+  createdAt!: string;
 
   static get tableName() {
     return "ips";
@@ -124,8 +124,8 @@ export class ShortLinkVisitIPModel extends Model implements ShortLinkVisitIP {
 }
 
 export class ShortLinkVisitorModel extends Model implements ShortLinkVisitor {
-  fingerprint = 0;
-  createdAt = new Date().toISOString();
+  fingerprint!: number;
+  createdAt!: string;
 
   static get tableName() {
     return "visitors";

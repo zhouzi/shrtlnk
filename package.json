@@ -4,7 +4,9 @@
     "./packages/*"
   ],
   "scripts": {
-    "dev": "concurrently \"yarn --cwd ./packages/back run dev\" \"yarn --cwd ./packages/front run start\""
+    "dev": "concurrently \"yarn --cwd ./packages/back run dev\" \"yarn --cwd ./packages/front run start\"",
+    "build": "yarn --cwd ./packages/front run build && yarn --cwd ./packages/back run build",
+    "start": "yarn --cwd ./packages/back run start"
   },
   "devDependencies": {
     "concurrently": "^6.0.0"

@@ -5,6 +5,8 @@
     "allowSyntheticDefaultImports": true,
     "target": "es6",
     "moduleResolution": "node",
-    "strict": true
-  }
+    "strict": true,
+    "outDir": "build"
+  },
+  "include": ["./src/**/*"]
 }
