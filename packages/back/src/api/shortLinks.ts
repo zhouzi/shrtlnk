@@ -87,7 +87,7 @@ shortLinksRouter.post<
           postal: null,
           asn: null,
         }
-      : await ipdata.lookup();
+      : await ipdata.lookup(ip);
 
     await ShortLinkVisitIPModel.query().insert({
       ip,
