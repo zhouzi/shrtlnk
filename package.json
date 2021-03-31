@@ -1,0 +1,12 @@
+{
+  "private": true,
+  "workspaces": [
+    "./packages/*"
+  ],
+  "scripts": {
+    "dev": "concurrently \"yarn --cwd ./packages/back run dev\" \"yarn --cwd ./packages/front run start\""
+  },
+  "devDependencies": {
+    "concurrently": "^6.0.0"
+  }
+}
