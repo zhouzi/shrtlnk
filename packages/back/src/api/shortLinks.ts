@@ -65,6 +65,7 @@ shortLinksRouter.post<
     return res.status(404).end();
   }
 
+  console.log(req.ips);
   const visitIP = await ShortLinkVisitIPModel.query().findById(req.ip);
   if (visitIP == null) {
     const {
