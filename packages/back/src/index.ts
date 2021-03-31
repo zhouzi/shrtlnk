@@ -14,7 +14,7 @@ import { createSchema } from "./database";
 
   app.use("/api", shortLinksRouter);
 
-  app.use((req, res) => res.send(path.join(buildPath, "index.html")));
+  app.use((req, res) => res.sendFile(path.join(buildPath, "index.html")));
 
   app.listen(process.env.PORT || 3001);
 })();
