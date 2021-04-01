@@ -11,6 +11,7 @@ import {
   ClipboardIcon,
   IconButton,
   toaster,
+  Small,
 } from "evergreen-ui";
 import copy from "copy-to-clipboard";
 import { GetShortLinkResponse, ShortLinkWithChildren } from "@shrtlnk/types";
@@ -89,8 +90,11 @@ export function RouteShortLink() {
               <Heading size={500}>
                 {`${window.location.host}/r/${shortLink.id}`}
               </Heading>
-              <Paragraph marginBottom={16}>
-                Created at {new Date(shortLink.createdAt).toLocaleString()}
+              <Paragraph marginBottom={8}>{shortLink.url}</Paragraph>
+              <Paragraph color="muted" marginBottom={16}>
+                <Small>
+                  Created at {new Date(shortLink.createdAt).toLocaleString()}
+                </Small>
               </Paragraph>
             </Pane>
             <Pane>
