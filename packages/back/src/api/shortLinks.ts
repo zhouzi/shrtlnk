@@ -28,9 +28,9 @@ shortLinksRouter.get<GetShortLinksParameters, GetShortLinksResponse>(
   "/shortLinks",
   authorization,
   async (req, res) => {
-    const shortLinks = ((await ShortLinkModel.query().withGraphFetched(
-      "visits.[ip, visitor]"
-    )) as unknown) as GetShortLinksResponse;
+    const shortLinks = ((await ShortLinkModel.query()
+      .withGraphFetched("visits.[ip, visitor]")
+      .orderBy("createdAt", "DESC")) as unknown) as GetShortLinksResponse;
     res.json(shortLinks);
   }
 );
