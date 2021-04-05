@@ -18,6 +18,7 @@ import {
   ShortLinkVisitIPModel,
   ShortLinkVisitorModel,
   ShortLinkVisitModel,
+  ShortLinkVisitorGeo,
 } from "../database";
 import { authorization } from "../authorization";
 
@@ -58,7 +59,7 @@ shortLinksRouter.post<
   PostShortLinksVisitsBody
 >("/shortLinks/:id/visits", async (req, res) => {
   // FIXME: validate input
-  const { fingerprint, browser, engine, os, timeZone } = req.body;
+  const { fingerprint, browser, engine, os, timeZone, geo } = req.body;
 
   const forwardedFor = req.headers["x-forwarded-for"];
   const ip =
@@ -106,6 +107,15 @@ shortLinksRouter.post<
     await ShortLinkVisitorModel.query().insert({
       fingerprint,
       createdAt: new Date().toISOString(),
+    });
+  }
+
+  if (geo) {
+    await ShortLinkVisitorGeo.query().insert({
+      lat: geo.lat,
+      lon: geo.lon,
+      createdAt: new Date().toISOString(),
+      visitorFingerprint: fingerprint,
     });
   }
 

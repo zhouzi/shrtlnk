@@ -62,6 +62,7 @@ export interface PostShortLinksVisitsBody {
   engine: string;
   os: string;
   timeZone: string;
+  geo: { lat: number; lon: number } | null;
 }
 
 export interface GetShortLinkParameters {

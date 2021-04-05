@@ -151,6 +151,43 @@ export class ShortLinkVisitorModel extends Model implements ShortLinkVisitor {
           to: `${ShortLinkVisitModel.tableName}.visitorFingerprint`,
         },
       },
+      geo: {
+        relation: Model.HasManyRelation,
+        modelClass: ShortLinkVisitorGeo,
+        join: {
+          from: `${ShortLinkVisitorModel.tableName}.fingerprint`,
+          to: `${ShortLinkVisitorGeo.tableName}.visitorFingerprint`,
+        },
+      },
+    };
+  }
+}
+
+export class ShortLinkVisitorGeo extends Model {
+  id!: number;
+  lat!: number;
+  lon!: number;
+  createdAt!: string;
+  visitorFingerprint!: number;
+
+  static get tableName() {
+    return "geos";
+  }
+
+  static get idColumn() {
+    return "id";
+  }
+
+  static get relationMappings() {
+    return {
+      visitor: {
+        relation: Model.BelongsToOneRelation,
+        modelClass: ShortLinkVisitModel,
+        join: {
+          from: `${ShortLinkVisitorGeo.tableName}.visitorFingerprint`,
+          to: `${ShortLinkVisitorModel.tableName}.fingerprint`,
+        },
+      },
     };
   }
 }
@@ -200,6 +237,20 @@ export async function createSchema() {
       table
         .foreign("ipAddress")
         .references(`${ShortLinkVisitIPModel.tableName}.ip`);
+
+      table.bigInteger("visitorFingerprint").notNullable();
+      table
+        .foreign("visitorFingerprint")
+        .references(`${ShortLinkVisitorModel.tableName}.fingerprint`);
+    });
+  }
+
+  if (!(await pg.schema.hasTable(ShortLinkVisitorGeo.tableName))) {
+    await pg.schema.createTable(ShortLinkVisitorGeo.tableName, (table) => {
+      table.increments("id").notNullable().unique().primary();
+      table.float("lat").notNullable();
+      table.float("lon").notNullable();
+      table.dateTime("createdAt").notNullable();
 
       table.bigInteger("visitorFingerprint").notNullable();
       table

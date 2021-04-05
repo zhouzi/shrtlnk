@@ -7,6 +7,31 @@ import {
 } from "@shrtlnk/types";
 import { ClientContext } from "../client";
 
+async function getCurrentPosition(): Promise<{
+  lat: number;
+  lon: number;
+} | null> {
+  return new Promise((resolve) => {
+    try {
+      window.navigator.geolocation.getCurrentPosition(
+        (position) => {
+          resolve({
+            lat: position.coords.latitude,
+            lon: position.coords.longitude,
+          });
+        },
+        () => resolve(null),
+        {
+          timeout: 10000,
+          maximumAge: 0,
+        }
+      );
+    } catch (err) {
+      resolve(null);
+    }
+  });
+}
+
 export function RouteRedirect() {
   const { client } = React.useContext(ClientContext);
   const { id } = useParams<{ id: string }>();
@@ -23,6 +48,7 @@ export function RouteRedirect() {
         engine: `${fp.getEngine()} ${fp.getEngineVersion()}`,
         os: `${fp.getOS()} ${fp.getOSVersion()}`,
         timeZone: fp.getTimeZone(),
+        geo: await getCurrentPosition(),
       };
       const {
         data: { url },
@@ -34,5 +60,5 @@ export function RouteRedirect() {
     })();
   }, [id]);
 
-  return null;
+  return <>Redirecting...</>;
 }
